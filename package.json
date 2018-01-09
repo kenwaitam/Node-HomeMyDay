@@ -27,6 +27,7 @@
     "cross-env": "^5.1.1",
     "express": "^4.16.2",
     "helmet": "^3.9.0",
+    "jsonwebtoken": "^8.1.0",
     "mongodb": "^2.2.33",
     "mongoose": "^4.13.4",
     "mongoose-unique-validator": "^1.0.6",

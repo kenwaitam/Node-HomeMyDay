@@ -13,4 +13,14 @@ export interface IConfig {
      * The origin that is allowed access to the api
      */
     allowOrigin: string;
+
+    /**
+     * The default secret key used for JWT authentication
+     */
+    secret: string;
+
+    /**
+     * How many seconds a JWT token is valid
+     */
+    expirationSeconds: number;
 }

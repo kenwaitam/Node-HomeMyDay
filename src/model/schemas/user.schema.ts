@@ -6,6 +6,7 @@ export interface IUserDocument extends Document {
     email: string;
     password: string;
     role: UserRoles;
+    comparePassword: (password: string) => Promise<boolean>;
 }
 
 export enum UserRoles {
