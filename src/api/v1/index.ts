@@ -1,6 +1,6 @@
 import express = require('express');
-import routesAuthentication from './authentication.routes';
 import accommodationRoutes from './accommodation.routes';
+import routesAuthentication from './authentication.routes';
 
 const router = express.Router();
 
