@@ -5,9 +5,9 @@ import User from '../../model/user.model';
 import { expressAsync } from '../../utils/express.async';
 import { ApiError } from '../errors/api.error';
 
-const router = express.Router();
+const routes = express.Router();
 
-router.post('/', expressAsync(async (req, res, next) => {
+routes.post('/authorize', expressAsync(async (req, res, next) => {
     const usr = req.body.username;
     const pwd = req.body.password;
 
@@ -26,7 +26,7 @@ router.post('/', expressAsync(async (req, res, next) => {
     }
 }));
 
-router.post('/register', expressAsync(async (req, res, next) => {
+routes.post('/register', expressAsync(async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
 
@@ -48,4 +48,4 @@ router.post('/register', expressAsync(async (req, res, next) => {
     res.status(201).end();
 }));
 
-export default router;
+export default routes;

@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import * as bcrypt from 'bcrypt';
 import 'mocha';
 import * as mongoose from 'mongoose';
 import * as request from 'supertest';
@@ -12,7 +13,7 @@ describe('Authentication', () => {
     beforeEach(mochaAsync(async () => {
         const user = new User({
             email: 'test@example.com',
-            password: 'Test Password'
+            password: await bcrypt.hash('Test Password', 10)
         });
 
         await user.save();
@@ -25,17 +26,10 @@ describe('Authentication', () => {
     }));
 
     it('POST /api/v1/authentication', mochaAsync(async () => {
-        const response = await request(app).post('/api/v1/authentication').send({
-            username: 'Test',
-            password: 'test123',
+        const response = await request(app).post('/api/v1/authentication/authorize').send({
+            email: 'test@example.com',
+            password: 'Test Password',
         }).expect(200);
-
-        const { username, password } = response.body;
-        // const check = await bcrypt.compare(response.body.password, hash);
-        console.log(response.body.password);
-
-        assert(username === 'Test');
-        //assert();
     }));
 
     it('Tries to register a new user', mochaAsync(async () => {
