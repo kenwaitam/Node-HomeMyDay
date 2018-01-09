@@ -30,6 +30,15 @@ export class AccommodationService {
     }
 
     /**
+     * Updates a single accommodation.
+     * @param id The ID of the accommodation to update.
+     * @param accommodation The new values for the accommodation.
+     */
+    public static async updateAccommodation(id: string, accommodation: IAccommodationDocument) {
+        return await Accommodation.findByIdAndUpdate(id, accommodation, { new: true });
+    }
+
+    /**
      * Deletes an accommodation of the ID
      * @param id The Object ID to delete.
      */

@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import * as bcrypt from 'bcrypt';
 import 'mocha';
 import * as mongoose from 'mongoose';
 import * as request from 'supertest';
@@ -9,11 +8,11 @@ const app = require('../../src/index').default;
 
 describe('Authentication', () => {
 
+    // Add user
     beforeEach(mochaAsync(async () => {
         const user = new User({
-            username: 'Test',
-            password: await bcrypt.hash('test123', 10),
-            role: 'user'
+            email: 'test@example.com',
+            password: 'Test Password'
         });
 
         await user.save();
@@ -24,16 +23,6 @@ describe('Authentication', () => {
 
         assert(count > 0);
     }));
-
-    // it('Create password hash', mochaAsync(async () => {
-    //     const user = await User.findOne({ username: 'Test' });
-    //     const password = user.password;
-    //     const rounds = 10;
-    //     const hash = await bcrypt.hash(password, rounds);
-    //     const check = await bcrypt.compare(password, hash);
-
-    //     assert(check);
-    // }));
 
     it('POST /api/v1/authentication', mochaAsync(async () => {
         const response = await request(app).post('/api/v1/authentication').send({
@@ -47,5 +36,35 @@ describe('Authentication', () => {
 
         assert(username === 'Test');
         //assert();
+    }));
+
+    it('Tries to register a new user', mochaAsync(async () => {
+        const response = await request(app)
+        .post('/api/v1/authentication/register')
+        .send({
+            email: 'test2@example.com',
+            password: 'secret'
+        })
+        .expect(201);
+    }));
+
+    it('Tries to register an already existing user', mochaAsync(async () => {
+        const response = await request(app)
+        .post('/api/v1/authentication/register')
+        .send({
+            email: 'test@example.com',
+            password: 'secret'
+        })
+        .expect(400);
+
+        const err = response.body;
+
+        assert(err !== null);
+        assert(err.errors.length > 0);
+    }));
+
+    // Remove all users
+    afterEach(mochaAsync(async () => {
+        await User.remove({});
     }));
 });
