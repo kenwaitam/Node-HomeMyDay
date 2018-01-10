@@ -27,10 +27,10 @@ routes.post('/login', expressAsync(async (req, res, next) => {
 }));
 
 routes.post('/authorize', expressAsync(async (req, res, next) => {
-    const usr = req.body.username;
+    const eml = req.body.email;
     const pwd = req.body.password;
 
-    const user = await User.findOne({ username: usr });
+    const user = await User.findOne({ email: eml });
 
     // check if user exist
     if (user) {

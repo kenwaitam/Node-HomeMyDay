@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\api",
+    "\\src\\api\\v1",
+    "\\test",
+    "\\test\\accommodation",
+    "\\test\\authentication"
+  ],
+  "SelectedNode": "\\src\\api\\v1\\accommodation.routes.ts",
+  "PreviewInSolutionExplorer": false
+}

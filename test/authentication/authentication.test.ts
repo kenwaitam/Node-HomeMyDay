@@ -13,7 +13,7 @@ describe('Authentication', () => {
     beforeEach(mochaAsync(async () => {
         const user = new User({
             email: 'test@example.com',
-            password: await bcrypt.hash('Test Password', 10)
+            password: 'Test123'
         });
 
         await user.save();
@@ -25,10 +25,24 @@ describe('Authentication', () => {
         assert(count > 0);
     }));
 
-    it('POST /api/v1/authentication', mochaAsync(async () => {
-        const response = await request(app).post('/api/v1/authentication/authorize').send({
+    it('Return status 200', mochaAsync(async () => {
+        const response = await request(app).post('/api/v1/authentication/login').send({
             email: 'test@example.com',
-            password: 'Test Password',
+            password: 'Test123',
+        }).expect(200);
+    }));
+
+    it('Return status 400', mochaAsync(async () => {
+        const response = await request(app).post('/api/v1/authentication/login').send({
+            email: 'test@example.com',
+            password: 'Test321',
+        }).expect(400);
+    }));
+
+    it('POST /api/v1/authentication', mochaAsync(async () => {
+        const response = await request(app).post('/api/v1/authentication/login').send({
+            email: 'test@example.com',
+            password: 'Test123',
         }).expect(200);
     }));
 
