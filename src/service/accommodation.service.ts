@@ -21,6 +21,14 @@ export class AccommodationService {
     }
 
     /**
+     * Gets a list of accommodations
+     * @returns All recommended accommodations from the Mongo database.
+     */
+    public static async GetRecommendedAccommodations() {
+        return await Accommodation.find({});
+    }
+
+    /**
      * Gets all accommodations that match the given search parameters.
      * Will only return accommodations that can fit the requested amount of persons.
      * Will also only return accommodations which are not already booked in the requested timeframe.

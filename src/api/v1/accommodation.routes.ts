@@ -52,6 +52,22 @@ routes.get('/:id', expressAsync(async (req, res, next) => {
     res.json(accommodation);
 }));
 
+routes.get('/recommend', expressAsync(async (req, res, next) => {
+    let accommodations;
+
+    if (req.query.search && req.query.dateFrom && req.query.dateTo && req.query.persons) {
+        accommodations = await AccommodationService.searchAccommodations(
+            req.query.search,
+            new Date(req.query.dateFrom),
+            new Date(req.query.dateTo),
+            req.query.persons);
+    } else {
+        accommodations = await AccommodationService.getAccommodations();
+    }
+
+    res.json(accommodations);
+}));
+
 routes.post('/', authenticationMiddleware, expressAsync(async (req, res, next) => {
     // Get the user id
     const userId = req.authenticatedUser._id;
