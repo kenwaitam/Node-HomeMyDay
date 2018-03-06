@@ -1,7 +1,9 @@
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
+import * as fs from 'fs';
 import * as helmet from 'helmet';
 import * as http from 'http';
+import * as https from 'https';
 import mongoose = require('mongoose');
 import * as logger from 'morgan';
 import * as apiRoutes from './api';
@@ -11,6 +13,14 @@ import { SeedService } from './service/seed.service';
 
 const port = Config.port;
 const app = express();
+
+const options = {
+    key: fs.readFileSync('./certs/nodeprivate.key').toString(),
+    cert: fs.readFileSync('./certs/nodecert.crt').toString(),
+    requestCert: false,
+    rejectUnauthorized: false,
+    https: true
+};
 
 mongoose.Promise = global.Promise;
 
@@ -113,8 +123,18 @@ app.use((err, req: express.Request, res: express.Response, next: express.NextFun
     });
 });
 
-const server = app.listen(port, () => {
-    console.log(`Started listening on port ${port}`);
+// let server = app.listen(port, () => {
+//     console.log(`Started listening on port ${port}`);
+// });
+
+// Create an HTTP service.
+// const server = http.createServer(app).listen(port, () => {
+//     console.log(`Started listening (Unsecured) on port ${port}`);
+// });
+
+// Create an HTTPS service identical to the HTTP service.
+const htppsServer = https.createServer(options, app).listen(1234, () => {
+    console.log(`Started listening (Secured) on port 1234`);
 });
 
 // Handle ^C
@@ -123,7 +143,10 @@ process.on('SIGINT', shutdown);
 // Do graceful shutdown
 function shutdown() {
     mongoose.disconnect().then(() => {
-        server.close(() => {
+        // server.close(() => {
+        //     console.log('Evertyhing shutdown');
+        // });
+        htppsServer.close(() => {
             console.log('Evertyhing shutdown');
         });
     });
