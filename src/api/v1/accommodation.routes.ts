@@ -11,14 +11,14 @@ import { ImageService } from '../../service/image.service';
 import { expressAsync } from '../../utils/express.async';
 import { upload } from '../../utils/multer';
 import { ValidationHelper } from '../../utils/validationhelper';
+import { BruteMiddleware } from '../middleware/brute.middleware';
 import { adminMiddleware, authenticationMiddleware } from '../middleware/index';
 
 const routes = express.Router();
 
-routes.get('/', expressAsync(async (req, res, next) => {
+routes.get('/', BruteMiddleware.globalBruteforce().prevent, expressAsync(async (req, res, next) => {
 
     let accommodations;
-
     if (req.query.search && req.query.dateFrom && req.query.dateTo && req.query.persons) {
         accommodations = await AccommodationService.searchAccommodations(
             req.query.search,

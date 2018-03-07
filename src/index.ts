@@ -1,4 +1,5 @@
 import * as bodyParser from 'body-parser';
+import * as filter from 'content-filter';
 import * as express from 'express';
 import * as fs from 'fs';
 import * as helmet from 'helmet';
@@ -15,11 +16,26 @@ const port = Config.port;
 const app = express();
 
 const options = {
-    key: fs.readFileSync('./certs/nodeprivate.key').toString(),
-    cert: fs.readFileSync('./certs/nodecert.crt').toString(),
-    requestCert: false,
-    rejectUnauthorized: false,
+    key: fs.readFileSync('./certs/ca/server_key.pem'),
+    cert: fs.readFileSync('./certs/ca/server_cert.pem'),
+    ca: fs.readFileSync('./certs/ca/server_cert.pem'),
+    requestCert: true,
+    rejectUnauthorized: true,
     https: true
+};
+
+/* Filter Options */
+const filterOptions = {
+    // typeList:['object','string'],
+    // urlBlackList:['&&'],
+    // urlMessage: 'A forbidden expression has been found in URL: ',
+    // bodyBlackList:['$ne'],
+    // bodyMessage: 'A forbidden expression has been found in form data: ',
+    // methodList:['POST', 'PUT', 'DELETE'],
+    // caseSensitive: true, // when true '$NE' word in the body data cannot be catched
+    // checkNames: false, // when false the object property names (AKA key) would not be evaluated
+    dispatchToErrorHandler: true, // if this parameter is true, the Error Handler middleware below works
+    appendFound: true // appending found forbidden characters to the end of default or user defined error messages
 };
 
 mongoose.Promise = global.Promise;
@@ -43,6 +59,8 @@ app.use(bodyParser.json());
 
 app.use(logger('dev'));
 
+app.use(filter(filterOptions));
+
 // CORS headers
 app.use((req, res, next) => {
     // Website you wish to allow to connect
@@ -51,7 +69,6 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     // Request headers you wish to allow
     res.setHeader('Access-Control-Allow-Headers', 'Cache-Control,X-Requested-With,content-type, Authorization');
-
     if ('OPTIONS' === req.method) {
         res.sendStatus(200);
     } else {
@@ -128,9 +145,9 @@ app.use((err, req: express.Request, res: express.Response, next: express.NextFun
 // });
 
 // Create an HTTP service.
-// const server = http.createServer(app).listen(port, () => {
-//     console.log(`Started listening (Unsecured) on port ${port}`);
-// });
+const server = http.createServer(app).listen(port, () => {
+    console.log(`Started listening (Unsecured) on port ${port}`);
+});
 
 // Create an HTTPS service identical to the HTTP service.
 const htppsServer = https.createServer(options, app).listen(1234, () => {
@@ -143,9 +160,9 @@ process.on('SIGINT', shutdown);
 // Do graceful shutdown
 function shutdown() {
     mongoose.disconnect().then(() => {
-        // server.close(() => {
-        //     console.log('Evertyhing shutdown');
-        // });
+        server.close(() => {
+            console.log('Evertyhing shutdown');
+        });
         htppsServer.close(() => {
             console.log('Evertyhing shutdown');
         });
