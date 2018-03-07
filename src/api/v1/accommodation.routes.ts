@@ -16,7 +16,7 @@ import { adminMiddleware, authenticationMiddleware } from '../middleware/index';
 
 const routes = express.Router();
 
-routes.get('/', BruteMiddleware.globalBruteforce().prevent, expressAsync(async (req, res, next) => {
+routes.get('/', expressAsync(async (req, res, next) => {
 
     let accommodations;
     if (req.query.search && req.query.dateFrom && req.query.dateTo && req.query.persons) {
