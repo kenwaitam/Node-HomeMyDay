@@ -41,12 +41,6 @@ const userSchema: Schema = new Schema({
             tempSecret: String,
             dataURL: String,
             otpURL: String
-        },
-        default: {
-            secret: String,
-            tempSecret: String,
-            dataURL: String,
-            otpURL: String
         }
     }
 });

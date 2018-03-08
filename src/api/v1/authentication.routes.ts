@@ -25,35 +25,15 @@ routes.post('/login', BruteMiddleware.userBruteforce().prevent,
         }
 
         let user: IUserDocument;
-        // 2fa not enabled
-        if (!user.tfa || !user.tfa.secret) {
-            try {
-                user = await AuthenticationService.authenticateUser(email, password);
-            } catch (e) {
-                if (e instanceof AuthenticationError) {
-                    throw new ApiError(400, e.message);
-                } else {
-                    throw e;
-                }
-            }
-        } else {
-            // check if otp is passed, if not then ask for OTP
-            if (!req.headers['x-otp'] || !req.body.token) {
-                return res.status(206).json('Please enter otp to continue');
-            }
+        try {
 
-            // validate otp
-            const verified = speakeasy.totp.verify({
-                secret: user.tfa.secret,
-                encoding: 'base32',
-                token: req.body.token
-            });
-            // authenticate user
-            if (verified) {
-                return res.json({ success: true });
+            user = await AuthenticationService.authenticateUser(email, password, req.body.token);
+
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
+                throw new ApiError(400, e.message);
             } else {
-                // Invalid otp
-                return res.status(400).json('Invalid OTP');
+                throw e;
             }
         }
         const token = AuthenticationService.generateToken(user);
