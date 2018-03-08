@@ -1,6 +1,8 @@
 import * as bcrypt from 'bcrypt';
 import express = require('express');
 import { ValidationError } from 'mongoose';
+import * as QRCode from 'qrcode';
+import * as speakeasy from 'speakeasy';
 import { ApiError, AuthenticationError } from '../../errors/index';
 import { IUserDocument } from '../../model/schemas/user.schema';
 import User from '../../model/user.model';
@@ -23,21 +25,98 @@ routes.post('/login', BruteMiddleware.userBruteforce().prevent,
         }
 
         let user: IUserDocument;
+        // 2fa not enabled
+        if (!user.tfa || !user.tfa.secret) {
+            try {
+                user = await AuthenticationService.authenticateUser(email, password);
+            } catch (e) {
+                if (e instanceof AuthenticationError) {
+                    throw new ApiError(400, e.message);
+                } else {
+                    throw e;
+                }
+            }
+        } else {
+            // check if otp is passed, if not then ask for OTP
+            if (!req.headers['x-otp'] || !req.body.token) {
+                return res.status(206).json('Please enter otp to continue');
+            }
 
-        try {
-            user = await AuthenticationService.authenticateUser(email, password);
-        } catch (e) {
-            if (e instanceof AuthenticationError) {
-                throw new ApiError(400, e.message);
+            // validate otp
+            const verified = speakeasy.totp.verify({
+                secret: user.tfa.secret,
+                encoding: 'base32',
+                token: req.body.token
+            });
+            // authenticate user
+            if (verified) {
+                return res.json({ success: true });
             } else {
-                throw e;
+                // Invalid otp
+                return res.status(400).json('Invalid OTP');
             }
         }
-
         const token = AuthenticationService.generateToken(user);
 
         res.status(200).json({ token });
     }));
+
+routes.post('/twofactor/setup', expressAsync(async (req, res, next) => {
+    const secret = speakeasy.generateSecret({ length: 10 });
+    const user = req.authenticatedUser;
+    QRCode.toDataURL(secret.otpauth_url, (err, dataUrl) => {
+
+        // save to logged in user.
+        user.tfa = {
+            secret: '',
+            tempSecret: secret.base32,
+            dataURL: dataUrl,
+            otpURL: secret.otpauth_url
+        };
+
+        user.save();
+
+        return res.json({
+            message: 'Verify OTP',
+            tempSecret: secret.base32,
+            dataURL: dataUrl,
+            otpURL: secret.otpauth_url
+        });
+    });
+}));
+
+// before enabling totp based 2fa; it's important to verify,
+// so that we don't end up locking the user.
+routes.post('/twofactor/verify', expressAsync(async (req, res, next) => {
+    const user = req.authenticatedUser;
+
+    const verified = speakeasy.totp.verify({
+        // secret of the logged in user
+        secret: user.tfa.tempSecret,
+        encoding: 'base32',
+        token: req.body.token
+    });
+    if (verified) {
+        // set secret, confirm 2fa
+        user.tfa.secret = user.tfa.tempSecret;
+        return res.send('Two-factor auth enabled');
+    }
+    return res.status(400).json('Invalid token, verification failed');
+
+}));
+
+// get 2fa details
+routes.get('/twofactor/setup', expressAsync(async (req, res, next) => {
+    const user = req.authenticatedUser;
+    res.json(req.authenticatedUser.tfa);
+}));
+
+// disable 2fa
+routes.get('/twofactor/setup', expressAsync(async (req, res, next) => {
+    const user = req.authenticatedUser;
+    delete req.authenticatedUser.tfa;
+    res.json('success');
+}));
 
 routes.post('/register', expressAsync(async (req, res, next) => {
 
