@@ -11,7 +11,6 @@ import { ImageService } from '../../service/image.service';
 import { expressAsync } from '../../utils/express.async';
 import { upload } from '../../utils/multer';
 import { ValidationHelper } from '../../utils/validationhelper';
-import { BruteMiddleware } from '../middleware/brute.middleware';
 import { adminMiddleware, authenticationMiddleware } from '../middleware/index';
 
 const routes = express.Router();

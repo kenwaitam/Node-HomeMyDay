@@ -7,7 +7,7 @@ export class BruteForce {
             windowMs: 2 * 60 * 1000, // 2 minutes
             max: 5,
             delayMs: 0, // disabled
-            skipFailedRequests: true
+            // skipFailedRequests: true
         }
         );
     }
