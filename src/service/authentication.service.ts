@@ -1,4 +1,5 @@
 import * as jwt from 'jsonwebtoken';
+import * as speakeasy from 'speakeasy';
 import { Config } from '../config/config.const';
 import { AuthenticationError } from '../errors/index';
 import { IUserToken } from '../model/iusertoken.interface';
@@ -14,7 +15,7 @@ export class AuthenticationService {
      * @returns An instance of IUserDocument, if the login attempt was successful.
      * @throws An instance of AuthenticationError, if the login attempt was not successful.
      */
-    public static async authenticateUser(email: string, password: string): Promise<IUserDocument> {
+    public static async authenticateUser(email: string, password: string, tfaToken?: string): Promise<IUserDocument> {
         const user = await User.findOne({ email });
         if (!user) {
             throw new AuthenticationError('Invalid username or password!');
@@ -24,6 +25,18 @@ export class AuthenticationService {
 
         if (!result) {
             throw new AuthenticationError('Invalid username or password!');
+        }
+        if (user.tfa) {
+
+            const verified = speakeasy.totp.verify({
+                secret: user.tfa.tempSecret,
+                encoding: 'base32',
+                token: tfaToken
+            });
+
+            if (!verified) {
+                throw new AuthenticationError('Invalid tfa token');
+            }
         }
 
         return user;

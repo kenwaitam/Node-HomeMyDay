@@ -7,6 +7,12 @@ export interface IUserDocument extends Document {
     password: string;
     role: UserRoles;
     comparePassword: (password: string) => Promise<boolean>;
+    tfa: {
+        secret: string;
+        tempSecret: string;
+        dataURL: string;
+        otpURL: string;
+    };
 }
 
 export enum UserRoles {
@@ -28,13 +34,21 @@ const userSchema: Schema = new Schema({
         type: String,
         required: true,
         default: UserRoles.User
+    },
+    tfa: {
+        type: {
+            secret: String,
+            tempSecret: String,
+            dataURL: String,
+            otpURL: String
+        }
     }
 });
 
 /* tslint:disable */
-userSchema.pre('save', async function(next) {
-    
-/* tslint:enable */
+userSchema.pre('save', async function (next) {
+
+    /* tslint:enable */
 
     const user = this;
 
@@ -54,7 +68,7 @@ userSchema.pre('save', async function(next) {
 
 /* tslint:disable */
 userSchema.methods.comparePassword = function (password) {
-/* tslint:enable */
+    /* tslint:enable */
     return bcrypt.compare(password, this.password);
 };
 
