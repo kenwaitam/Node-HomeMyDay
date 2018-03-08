@@ -1,10 +1,10 @@
 import * as jwt from 'jsonwebtoken';
+import * as speakeasy from 'speakeasy';
 import { Config } from '../config/config.const';
 import { AuthenticationError } from '../errors/index';
 import { IUserToken } from '../model/iusertoken.interface';
 import { IUserDocument } from '../model/schemas/user.schema';
 import { IUserModel, User } from '../model/user.model';
-import * as speakeasy from 'speakeasy';
 
 export class AuthenticationService {
 
@@ -26,7 +26,6 @@ export class AuthenticationService {
         if (!result) {
             throw new AuthenticationError('Invalid username or password!');
         }
-
         if (user.tfa) {
 
             const verified = speakeasy.totp.verify({
@@ -34,8 +33,9 @@ export class AuthenticationService {
                 encoding: 'base32',
                 token: tfaToken
             });
+
             if (!verified) {
-                throw new AuthenticationError('Invalid otp token');
+                throw new AuthenticationError('Invalid tfa token');
             }
         }
 
